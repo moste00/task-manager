@@ -13,6 +13,15 @@ function useTaskList() {
         ))
     }
 
+    function toggleCompleteTask(taskId) {
+        setTasks(prev => prev.map(t => {
+            if (t.id !== taskId) return t;
+            if (t.status === TaskStatus.ACTIVE) return { ...t, status: TaskStatus.COMPLETED };
+            if (t.status === TaskStatus.COMPLETED) return { ...t, status: TaskStatus.ACTIVE };
+            return t;
+        }))
+    }
+
     function restoreSoftDeletedTask(taskId) {
         setTasks(prev => prev.map(t =>
             t.id === taskId ? { ...t, status: TaskStatus.ACTIVE } : t
@@ -27,7 +36,7 @@ function useTaskList() {
         setTasks(prev => prev.filter(t => t.status !== TaskStatus.SOFT_DELETED))
     }
 
-    return { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks }
+    return { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks, toggleCompleteTask }
 }
 
 export default useTaskList

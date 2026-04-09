@@ -7,7 +7,7 @@ import { TaskStatus } from '../../types'
 import useTaskList from '../hooks/use_task_list'
 
 export default function MainView() {
-  const { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks } = useTaskList()
+  const { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks, toggleCompleteTask } = useTaskList()
   const [input, setInput] = useState('')
   const [currentTab, setCurrentTab] = useState('tasks')
   const inputRef = useRef(null)
@@ -33,7 +33,14 @@ export default function MainView() {
     )
   }
 
-  const activeTasks = tasks.filter(t => t.status === TaskStatus.ACTIVE)
+  const activeAndCompletedTasks = tasks
+    .filter(t => t.status === TaskStatus.ACTIVE || t.status === TaskStatus.COMPLETED)
+    .sort((a, b) => {
+      if (a.status === b.status) return b.id - a.id
+      return a.status === TaskStatus.ACTIVE ? -1 : 1
+    })
+
+  const completedCount = activeAndCompletedTasks.filter(t => t.status === TaskStatus.COMPLETED).length
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-16">
@@ -43,15 +50,15 @@ export default function MainView() {
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mb-10 text-center"
+        className="mb-10 w-full max-w-lg text-center relative"
       >
         <h1 className="text-3xl font-semibold tracking-tight text-foreground">
           Tasks
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {activeTasks.length === 0
+          {activeAndCompletedTasks.length === 0
             ? 'Nothing here yet'
-            : `${activeTasks.length} task${activeTasks.length === 1 ? '' : 's'}`}
+            : `${activeAndCompletedTasks.length} task${activeAndCompletedTasks.length === 1 ? '' : 's'}${completedCount > 0 ? ` (${completedCount} completed)` : ''}`}
         </p>
 
         {tasks.some(t => t.status === TaskStatus.SOFT_DELETED) && (
@@ -74,8 +81,8 @@ export default function MainView() {
       {/* Task list */}
       <div className="w-full max-w-lg flex flex-col gap-3">
         <AnimatePresence mode="popLayout">
-          {activeTasks.map(task => (
-            <TaskCard key={task.id} task={task} onSoftDelete={softDeleteTask} />
+          {activeAndCompletedTasks.map(task => (
+            <TaskCard key={task.id} task={task} onSoftDelete={softDeleteTask} onToggleComplete={toggleCompleteTask} />
           ))}
         </AnimatePresence>
       </div>
