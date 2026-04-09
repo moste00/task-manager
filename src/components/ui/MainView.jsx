@@ -1,24 +1,52 @@
 import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Button } from './button'
 import TaskCard from './TaskCard'
+import TaskInput from './TaskInput'
+import RubbishView from './RubbishView'
+import { TaskStatus } from '../../types'
 
 export default function MainView() {
   const [tasks, setTasks] = useState([])
   const [input, setInput] = useState('')
+  const [currentTab, setCurrentTab] = useState('tasks')
   const inputRef = useRef(null)
 
   function addTask() {
     const content = input.trim()
     if (!content) return
-    setTasks(prev => [{ id: Date.now(), content }, ...prev])
+    setTasks(prev => [{ id: Date.now(), content, status: TaskStatus.ACTIVE }, ...prev])
     setInput('')
     inputRef.current?.focus()
   }
 
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') addTask()
+  function handleSoftDelete(taskId) {
+    setTasks(prev => prev.map(t => 
+      t.id === taskId ? { ...t, status: TaskStatus.SOFT_DELETED } : t
+    ))
   }
+
+  function handleRestore(taskId) {
+    setTasks(prev => prev.map(t => 
+      t.id === taskId ? { ...t, status: TaskStatus.ACTIVE } : t
+    ))
+  }
+
+  function handleHardDelete(taskId) {
+    setTasks(prev => prev.filter(t => t.id !== taskId))
+  }
+
+  if (currentTab === 'rubbish') {
+    return (
+      <RubbishView 
+        tasks={tasks.filter(t => t.status === TaskStatus.SOFT_DELETED)} 
+        onRestore={handleRestore}
+        onHardDelete={handleHardDelete}
+        onGoBack={() => setCurrentTab('tasks')}
+      />
+    )
+  }
+
+  const activeTasks = tasks.filter(t => t.status === TaskStatus.ACTIVE)
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-16">
@@ -34,37 +62,33 @@ export default function MainView() {
           Tasks
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {tasks.length === 0
+          {activeTasks.length === 0
             ? 'Nothing here yet'
-            : `${tasks.length} task${tasks.length === 1 ? '' : 's'}`}
+            : `${activeTasks.length} task${activeTasks.length === 1 ? '' : 's'}`}
         </p>
+        
+        {tasks.some(t => t.status === TaskStatus.SOFT_DELETED) && (
+          <button 
+            onClick={() => setCurrentTab('rubbish')}
+            className="absolute right-0 top-1 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+          >
+            Recycle Bin
+          </button>
+        )}
       </motion.div>
 
-      {/* Input row */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.1 }}
-        className="w-full max-w-lg flex gap-2 mb-10"
-      >
-        <input
-          ref={inputRef}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="What needs doing?"
-          className="flex-1 bg-card border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring transition"
-        />
-        <Button onClick={addTask} disabled={!input.trim()}>
-          Add
-        </Button>
-      </motion.div>
+      <TaskInput
+        addTask={addTask}
+        input={input}
+        setInput={setInput}
+        inputRef={inputRef}
+      />
 
       {/* Task list */}
       <div className="w-full max-w-lg flex flex-col gap-3">
         <AnimatePresence mode="popLayout">
-          {tasks.map(task => (
-            <TaskCard key={task.id} task={task} />
+          {activeTasks.map(task => (
+            <TaskCard key={task.id} task={task} onSoftDelete={handleSoftDelete} />
           ))}
         </AnimatePresence>
       </div>
