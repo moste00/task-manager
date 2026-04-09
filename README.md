@@ -20,31 +20,34 @@ A beautifully designed, deeply robust, and completely offline-first personal tas
 ## Task Array Lifecycle & Architecture
 
 The application acts as a linear append-only timeline representing your history, tracking the exact lifecycle of individual entities:
+┌─────────────────┐ <br>
+│  Task [Newest]  │ <br>
+├─────────────────┤ <br>
+│  Task [Recent]  │ <br>
+├─────────────────┤ <br>
+│  Task [Older]   │ <br>
+├─────────────────┤ <br>
+│  Task [Oldest]  │ <br>
+└─────────────────┘ <br>
 
+      Array of tasks, the single source of truth for the entire app.
+      
 ```mermaid
 graph TD
-    subgraph "Task Array (Chronologically Sorted)"
-        T1["Task [Newest]"] --> T2["Task [Recent]"]
-        T2 --> T3["Task [Older]"]
-        T3 --> TN["Task [Oldest]"]
-        
-        T2 -. "Inspect State" .-> TL
-    end
-
     subgraph "Single Task Lifecycle"
         TL((Task Payload)) --> |"Created"| A[Active]
         
         A -- ".toggleCompleteTask()" <--> C[Completed]
         
-        A -- ".softDeleteTask()" --> SD[Soft Deleted<br/>(Moved to Recycle Bin)]
-        C -- ".softDeleteTask()" --> SD
+        A -- ".softDeleteTask()" --> SD["Soft Deleted - Moved to Recycle Bin (Still stored in the array above with a status flag)"]
         
         SD -- ".restoreSoftDeletedTask()" --> A
         
-        SD -- ".hardDeleteTask() / .wipeBin()" --> HD[Destroyed <br/><br/> *Blob Media Garbage<br/> Collected from IndexedDB*]
+        SD -- ".hardDeleteTask() / .wipeBin()" --> HD["Destroyed - Blob Media Garbage Collected from IndexedDB"]
     end
 ```
 
+The array is the sole source of truth for the entire app. Both the recycle bin and the various persistence options (localstorage and IndexedDB) are copies or views of the underlying single source of truth.
 ---
 
 ## Quick Start
