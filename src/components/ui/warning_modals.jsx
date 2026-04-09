@@ -1,5 +1,7 @@
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./alert_dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "./alert_dialog"
 import { useState } from "react"
+import { Trash2 } from "lucide-react"
+import { TaskStatus } from "../../types"
 
 export default function EmptyBinModal({ showEmptyModal, setShowEmptyModal, onEmptyBin, numTasks }) {
     const [emptyText, setEmptyText] = useState('')
@@ -46,7 +48,7 @@ export default function EmptyBinModal({ showEmptyModal, setShowEmptyModal, onEmp
     </AlertDialog>
 }
 
-export function HardTaskDeletionModal(onHardDelete, task) {
+export function HardTaskDeletionModal({ onHardDelete, task }) {
     return (
         task && task.status === TaskStatus.SOFT_DELETED && onHardDelete && (
             <AlertDialog>

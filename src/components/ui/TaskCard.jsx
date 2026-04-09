@@ -12,8 +12,15 @@ export default function TaskCard({ task, onSoftDelete, onRestore, onHardDelete, 
       layout
       initial={{ opacity: 0, y: 24, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95, y: -8 }}
-      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+      exit={{
+        opacity: [1, 1, 0],
+        scale: 0.2,
+        x: '45vw',
+        y: '45vh',
+        rotate: 180,
+        transition: { duration: 1, ease: "anticipate" }
+      }}
+      transition={{ layout: { type: 'spring', stiffness: 380, damping: 30 } }}
       className={`group relative overflow-hidden border border-border rounded-2xl px-5 py-4 shadow-sm hover:shadow-md transition-all duration-200 ${task.status === TaskStatus.COMPLETED ? 'bg-muted/20 opacity-60 grayscale-[0.2]' : 'bg-card'}`}
     >
       {/* Broad Strikethrough Envelope */}

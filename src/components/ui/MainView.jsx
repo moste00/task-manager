@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Trash2, Trash } from 'lucide-react'
 import TaskCard from './TaskCard'
 import TaskInput from './TaskInput'
 import RubbishView from './RubbishView'
@@ -60,15 +61,6 @@ export default function MainView() {
             ? 'Nothing here yet'
             : `${activeAndCompletedTasks.length} task${activeAndCompletedTasks.length === 1 ? '' : 's'}${completedCount > 0 ? ` (${completedCount} completed)` : ''}`}
         </p>
-
-        {tasks.some(t => t.status === TaskStatus.SOFT_DELETED) && (
-          <button
-            onClick={() => setCurrentTab('rubbish')}
-            className="absolute right-0 top-1 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-          >
-            Recycle Bin
-          </button>
-        )}
       </motion.div>
 
       <TaskInput
@@ -79,13 +71,27 @@ export default function MainView() {
       />
 
       {/* Task list */}
-      <div className="w-full max-w-lg flex flex-col gap-3">
+      <div className="w-full max-w-lg flex flex-col gap-3 pb-24">
         <AnimatePresence mode="popLayout">
           {activeAndCompletedTasks.map(task => (
             <TaskCard key={task.id} task={task} onSoftDelete={softDeleteTask} onToggleComplete={toggleCompleteTask} />
           ))}
         </AnimatePresence>
       </div>
+
+      {currentTab === 'tasks' && (
+        <button 
+          onClick={() => setCurrentTab('rubbish')}
+          title="Recycle Bin"
+          className="fixed bottom-8 right-8 w-14 h-14 bg-card border border-border rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center justify-center text-muted-foreground hover:text-foreground hover:scale-110 transition-all z-50 group"
+        >
+          {tasks.filter(t => t.status === TaskStatus.SOFT_DELETED).length > 0 ? (
+            <Trash className="w-6 h-6 text-foreground transition-all" fill="currentColor" />
+          ) : (
+            <Trash className="w-6 h-6" fill="none" />
+          )}
+        </button>
+      )}
 
     </div>
   )
