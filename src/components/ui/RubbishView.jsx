@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import TaskCard from './TaskCard'
 import { ArrowLeft } from 'lucide-react'
+import { TaskStatus, getTaskDateCategory, TaskDateCategoryLabels } from '../../types'
 import EmptyBinModal from "./warning_modals"
 
 export default function RubbishView({ tasks, onRestore, onHardDelete, onEmptyBin, onGoBack }) {
@@ -45,14 +46,36 @@ export default function RubbishView({ tasks, onRestore, onHardDelete, onEmptyBin
       {/* Task list */}
       <div className="w-full max-w-lg flex flex-col gap-3">
         <AnimatePresence mode="popLayout">
-          {tasks.map(task => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onRestore={onRestore}
-              onHardDelete={onHardDelete}
-            />
-          ))}
+          {tasks.map((task, index) => {
+             const category = getTaskDateCategory(task.id)
+             const prevCategory = index > 0 ? getTaskDateCategory(tasks[index - 1].id) : null
+             const isDifferentCategory = category !== prevCategory
+ 
+             return (
+               <motion.div 
+                 key={task.id} 
+                 layout 
+                 initial={{ opacity: 0 }} 
+                 animate={{ opacity: 1 }} 
+                 exit={{ opacity: 0 }}
+                 className="w-full flex flex-col gap-3"
+               >
+                 {isDifferentCategory && (
+                   <div className="flex items-center gap-3 pt-3 pb-1 w-full mx-auto max-w-[95%] opacity-70">
+                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                       {TaskDateCategoryLabels[category]}
+                     </span>
+                     <div className="flex-1 h-px bg-border/80" />
+                   </div>
+                 )}
+                 <TaskCard 
+                   task={task} 
+                   onRestore={onRestore} 
+                   onHardDelete={onHardDelete} 
+                 />
+               </motion.div>
+             )
+          })}
         </AnimatePresence>
       </div>
 

@@ -4,7 +4,7 @@ import { Trash2, Trash } from 'lucide-react'
 import TaskCard from './TaskCard'
 import TaskInput from './TaskInput'
 import RubbishView from './RubbishView'
-import { TaskStatus } from '../../types'
+import { TaskStatus, getTaskDateCategory, TaskDateCategoryLabels } from '../../types'
 import useTaskList from '../hooks/use_task_list'
 
 export default function MainView() {
@@ -73,9 +73,32 @@ export default function MainView() {
       {/* Task list */}
       <div className="w-full max-w-lg flex flex-col gap-3 pb-24">
         <AnimatePresence mode="popLayout">
-          {activeAndCompletedTasks.map(task => (
-            <TaskCard key={task.id} task={task} onSoftDelete={softDeleteTask} onToggleComplete={toggleCompleteTask} />
-          ))}
+          {activeAndCompletedTasks.map((task, index) => {
+            const category = getTaskDateCategory(task.id)
+            const prevCategory = index > 0 ? getTaskDateCategory(activeAndCompletedTasks[index - 1].id) : null
+            const isDifferentCategory = category !== prevCategory
+
+            return (
+              <motion.div 
+                key={task.id} 
+                layout 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                className="w-full flex flex-col gap-3"
+              >
+                {isDifferentCategory && (
+                  <div className="flex items-center gap-3 pt-3 pb-1 w-full mx-auto max-w-[95%] opacity-70">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
+                      {TaskDateCategoryLabels[category]}
+                    </span>
+                    <div className="flex-1 h-px bg-border/80" />
+                  </div>
+                )}
+                <TaskCard task={task} onSoftDelete={softDeleteTask} onToggleComplete={toggleCompleteTask} />
+              </motion.div>
+            )
+          })}
         </AnimatePresence>
       </div>
 
