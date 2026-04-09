@@ -35,12 +35,17 @@ export default function MainView() {
     setTasks(prev => prev.filter(t => t.id !== taskId))
   }
 
+  function handleEmptyBin() {
+    setTasks(prev => prev.filter(t => t.status !== TaskStatus.SOFT_DELETED))
+  }
+
   if (currentTab === 'rubbish') {
     return (
       <RubbishView 
         tasks={tasks.filter(t => t.status === TaskStatus.SOFT_DELETED)} 
         onRestore={handleRestore}
         onHardDelete={handleHardDelete}
+        onEmptyBin={handleEmptyBin}
         onGoBack={() => setCurrentTab('tasks')}
       />
     )
