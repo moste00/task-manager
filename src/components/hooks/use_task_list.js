@@ -1,8 +1,8 @@
-import { useState } from "react"
 import { TaskStatus } from "../../types"
+import usePersistentState from "./use_persistent_state"
 
 function useTaskList() {
-    const [tasks, setTasks] = useState([])
+    const [tasks, setTasks] = usePersistentState('task_manager_tasks', [])
     function addTask(content) {
         setTasks(prev => [{ id: Date.now(), content, status: TaskStatus.ACTIVE }, ...prev])
     }
