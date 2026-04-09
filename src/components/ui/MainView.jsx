@@ -1,17 +1,20 @@
 import { useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Trash2, Trash } from 'lucide-react'
+import { Trash2, Trash, Download } from 'lucide-react'
 import TaskCard from './TaskCard'
 import TaskInput from './TaskInput'
 import RubbishView from './RubbishView'
 import { TaskStatus, getTaskDateCategory, TaskDateCategoryLabels } from '../../types'
 import useTaskList from '../hooks/use_task_list'
+import { exportTasks } from '../../utils/export'
+import ExportModal from './ExportModal'
 
 export default function MainView() {
   const { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks, toggleCompleteTask } = useTaskList()
   const [input, setInput] = useState('')
   const [image, setImage] = useState(null)
   const [currentTab, setCurrentTab] = useState('tasks')
+  const [showExportMenu, setShowExportMenu] = useState(false)
   const inputRef = useRef(null)
 
 
@@ -58,6 +61,11 @@ export default function MainView() {
         <h1 className="text-3xl font-semibold tracking-tight text-foreground">
           Tasks
         </h1>
+        {activeAndCompletedTasks.length > 0 && (
+          <button onClick={() => setShowExportMenu(true)} className="absolute left-0 top-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+             <Download className="w-4 h-4" /> Export
+          </button>
+        )}
         <p className="text-sm text-muted-foreground mt-1">
           {activeAndCompletedTasks.length === 0
             ? 'Nothing here yet'
@@ -119,6 +127,12 @@ export default function MainView() {
           )}
         </button>
       )}
+
+      <ExportModal 
+        open={showExportMenu} 
+        onOpenChange={setShowExportMenu} 
+        onExportOption={(type, incMedia) => exportTasks(activeAndCompletedTasks, type, incMedia)} 
+      />
 
     </div>
   )

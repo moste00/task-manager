@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import TaskCard from './TaskCard'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Download } from 'lucide-react'
 import { TaskStatus, getTaskDateCategory, TaskDateCategoryLabels } from '../../types'
 import EmptyBinModal from "./warning_modals"
+import ExportModal from "./ExportModal"
+import { exportTasks } from '../../utils/export'
 
 export default function RubbishView({ tasks, onRestore, onHardDelete, onEmptyBin, onGoBack }) {
   const [showEmptyModal, setShowEmptyModal] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-16">
@@ -34,12 +37,20 @@ export default function RubbishView({ tasks, onRestore, onHardDelete, onEmptyBin
         </p>
 
         {tasks.length > 0 && (
-          <button
-            onClick={() => setShowEmptyModal(true)}
-            className="absolute right-0 top-1 text-sm font-semibold text-red-500 hover:text-red-400 transition-colors"
-          >
-            Empty Bin
-          </button>
+          <div className="absolute right-0 top-0 flex flex-col items-end gap-2 text-sm font-semibold">
+              <button 
+                onClick={() => setShowExportMenu(true)}
+                className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+              >
+                <Download className="w-4 h-4" /> Export
+              </button>
+              <button 
+                onClick={() => setShowEmptyModal(true)}
+                className="text-red-500 hover:text-red-400 transition-colors"
+              >
+                Empty Bin
+              </button>
+          </div>
         )}
       </motion.div>
 
@@ -79,7 +90,18 @@ export default function RubbishView({ tasks, onRestore, onHardDelete, onEmptyBin
         </AnimatePresence>
       </div>
 
-      <EmptyBinModal showEmptyModal={showEmptyModal} setShowEmptyModal={setShowEmptyModal} onEmptyBin={onEmptyBin} numTasks={tasks.length} />
+      <EmptyBinModal 
+        showEmptyModal={showEmptyModal} 
+        setShowEmptyModal={setShowEmptyModal} 
+        onEmptyBin={onEmptyBin} 
+        numTasks={tasks.length} 
+      />
+
+      <ExportModal 
+        open={showExportMenu} 
+        onOpenChange={setShowExportMenu} 
+        onExportOption={(type, incMedia) => exportTasks(tasks, type, incMedia)} 
+      />
     </div>
   )
 }
