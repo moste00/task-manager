@@ -45,3 +45,36 @@ export default function EmptyBinModal({ showEmptyModal, setShowEmptyModal, onEmp
         </AlertDialogContent>
     </AlertDialog>
 }
+
+export function HardTaskDeletionModal(onHardDelete, task) {
+    return (
+        task && task.status === TaskStatus.SOFT_DELETED && onHardDelete && (
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <button className="text-muted-foreground hover:text-red-500 transition-colors" title="Permanently Delete">
+                        <Trash2 className="w-5 h-5" />
+                    </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-red-500 flex items-center gap-2">
+                            <Trash2 className="w-5 h-5" /> Destroy Task?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="leading-relaxed">
+                            You are about to permanently delete this task. It will be wiped from existence. There is no turning back from this.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-lg border border-destructive/20 italic line-clamp-2 my-2">
+                        "{task.content}"
+                    </div>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onHardDelete(task.id)} className="bg-red-500 text-white hover:bg-red-600">
+                            Annihilate It
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        )
+    )
+}
