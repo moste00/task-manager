@@ -4,48 +4,30 @@ import TaskCard from './TaskCard'
 import TaskInput from './TaskInput'
 import RubbishView from './RubbishView'
 import { TaskStatus } from '../../types'
+import useTaskList from '../hooks/use_task_list'
 
 export default function MainView() {
-  const [tasks, setTasks] = useState([])
+  const { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks } = useTaskList()
   const [input, setInput] = useState('')
   const [currentTab, setCurrentTab] = useState('tasks')
   const inputRef = useRef(null)
 
-  function addTask() {
+
+  function handleAddTask() {
     const content = input.trim()
     if (!content) return
-    setTasks(prev => [{ id: Date.now(), content, status: TaskStatus.ACTIVE }, ...prev])
+    addTask(content)
     setInput('')
     inputRef.current?.focus()
   }
 
-  function handleSoftDelete(taskId) {
-    setTasks(prev => prev.map(t => 
-      t.id === taskId ? { ...t, status: TaskStatus.SOFT_DELETED } : t
-    ))
-  }
-
-  function handleRestore(taskId) {
-    setTasks(prev => prev.map(t => 
-      t.id === taskId ? { ...t, status: TaskStatus.ACTIVE } : t
-    ))
-  }
-
-  function handleHardDelete(taskId) {
-    setTasks(prev => prev.filter(t => t.id !== taskId))
-  }
-
-  function handleEmptyBin() {
-    setTasks(prev => prev.filter(t => t.status !== TaskStatus.SOFT_DELETED))
-  }
-
   if (currentTab === 'rubbish') {
     return (
-      <RubbishView 
-        tasks={tasks.filter(t => t.status === TaskStatus.SOFT_DELETED)} 
-        onRestore={handleRestore}
-        onHardDelete={handleHardDelete}
-        onEmptyBin={handleEmptyBin}
+      <RubbishView
+        tasks={tasks.filter(t => t.status === TaskStatus.SOFT_DELETED)}
+        onRestore={restoreSoftDeletedTask}
+        onHardDelete={hardDeleteTask}
+        onEmptyBin={wipeSoftDeletedTasks}
         onGoBack={() => setCurrentTab('tasks')}
       />
     )
@@ -71,9 +53,9 @@ export default function MainView() {
             ? 'Nothing here yet'
             : `${activeTasks.length} task${activeTasks.length === 1 ? '' : 's'}`}
         </p>
-        
+
         {tasks.some(t => t.status === TaskStatus.SOFT_DELETED) && (
-          <button 
+          <button
             onClick={() => setCurrentTab('rubbish')}
             className="absolute right-0 top-1 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
           >
@@ -83,7 +65,7 @@ export default function MainView() {
       </motion.div>
 
       <TaskInput
-        addTask={addTask}
+        addTask={handleAddTask}
         input={input}
         setInput={setInput}
         inputRef={inputRef}
@@ -93,7 +75,7 @@ export default function MainView() {
       <div className="w-full max-w-lg flex flex-col gap-3">
         <AnimatePresence mode="popLayout">
           {activeTasks.map(task => (
-            <TaskCard key={task.id} task={task} onSoftDelete={handleSoftDelete} />
+            <TaskCard key={task.id} task={task} onSoftDelete={softDeleteTask} />
           ))}
         </AnimatePresence>
       </div>
