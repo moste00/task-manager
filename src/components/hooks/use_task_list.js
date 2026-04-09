@@ -1,10 +1,17 @@
 import { TaskStatus } from "../../types"
 import usePersistentState from "./use_persistent_state"
+import { saveImage, deleteImage } from "../../utils/db"
 
 function useTaskList() {
     const [tasks, setTasks] = usePersistentState('task_manager_tasks', [])
-    function addTask(content) {
-        setTasks(prev => [{ id: Date.now(), content, status: TaskStatus.ACTIVE }, ...prev])
+    function addTask(content, imageFile) {
+        const id = Date.now()
+        let imageId = null
+        if (imageFile) {
+            imageId = `img_${id}`
+            saveImage(imageId, imageFile).catch(console.error)
+        }
+        setTasks(prev => [{ id, content, status: TaskStatus.ACTIVE, imageId }, ...prev])
     }
 
     function softDeleteTask(taskId) {
@@ -29,11 +36,22 @@ function useTaskList() {
     }
 
     function hardDeleteTask(taskId) {
-        setTasks(prev => prev.filter(t => t.id !== taskId))
+        setTasks(prev => {
+            const task = prev.find(t => t.id === taskId)
+            if (task && task.imageId) deleteImage(task.imageId).catch(console.error)
+            return prev.filter(t => t.id !== taskId)
+        })
     }
 
     function wipeSoftDeletedTasks() {
-        setTasks(prev => prev.filter(t => t.status !== TaskStatus.SOFT_DELETED))
+        setTasks(prev => {
+            prev.forEach(task => {
+                if (task.status === TaskStatus.SOFT_DELETED && task.imageId) {
+                    deleteImage(task.imageId).catch(console.error)
+                }
+            })
+            return prev.filter(t => t.status !== TaskStatus.SOFT_DELETED)
+        })
     }
 
     return { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks, toggleCompleteTask }

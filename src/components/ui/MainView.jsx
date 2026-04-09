@@ -10,15 +10,17 @@ import useTaskList from '../hooks/use_task_list'
 export default function MainView() {
   const { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks, toggleCompleteTask } = useTaskList()
   const [input, setInput] = useState('')
+  const [image, setImage] = useState(null)
   const [currentTab, setCurrentTab] = useState('tasks')
   const inputRef = useRef(null)
 
 
   function handleAddTask() {
     const content = input.trim()
-    if (!content) return
-    addTask(content)
+    if (!content && !image) return
+    addTask(content, image)
     setInput('')
+    setImage(null)
     inputRef.current?.focus()
   }
 
@@ -68,6 +70,8 @@ export default function MainView() {
         input={input}
         setInput={setInput}
         inputRef={inputRef}
+        image={image}
+        setImage={setImage}
       />
 
       {/* Task list */}

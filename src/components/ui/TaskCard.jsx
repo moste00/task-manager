@@ -2,10 +2,28 @@ import { motion } from 'framer-motion'
 import { TaskStatus } from '../../types'
 import { Trash2, RotateCcw, CheckCircle, Circle } from 'lucide-react'
 import { HardTaskDeletionModal } from './warning_modals'
+import { useState, useEffect } from 'react'
+import { getImage } from '../../utils/db'
 
 export default function TaskCard({ task, onSoftDelete, onRestore, onHardDelete, onToggleComplete }) {
   const date = new Date(task.id)
   const timestamp = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const [imageUrl, setImageUrl] = useState(null)
+
+  useEffect(() => {
+    let url = null
+    if (task.imageId) {
+      getImage(task.imageId).then(blob => {
+        if (blob) {
+          url = URL.createObjectURL(blob)
+          setImageUrl(url)
+        }
+      })
+    }
+    return () => {
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [task.imageId])
 
   return (
     <motion.div
@@ -45,6 +63,11 @@ export default function TaskCard({ task, onSoftDelete, onRestore, onHardDelete, 
           <p className="mt-1 text-sm text-foreground leading-relaxed transition-colors duration-300">
             {task.content}
           </p>
+          {imageUrl && (
+            <div className="mt-4 mb-2 w-full max-w-[280px] rounded-xl overflow-hidden border border-border shadow-sm">
+              <img src={imageUrl} alt="Attached context" className="w-full h-auto object-cover" />
+            </div>
+          )}
         </div>
       </div>
 
