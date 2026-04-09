@@ -12,7 +12,7 @@ import ExportModal from './ExportModal'
 export default function MainView() {
   const { tasks, addTask, softDeleteTask, restoreSoftDeletedTask, hardDeleteTask, wipeSoftDeletedTasks, toggleCompleteTask } = useTaskList()
   const [input, setInput] = useState('')
-  const [image, setImage] = useState(null)
+  const [attachments, setAttachments] = useState([])
   const [currentTab, setCurrentTab] = useState('tasks')
   const [showExportMenu, setShowExportMenu] = useState(false)
   const inputRef = useRef(null)
@@ -20,10 +20,10 @@ export default function MainView() {
 
   function handleAddTask() {
     const content = input.trim()
-    if (!content && !image) return
-    addTask(content, image)
+    if (!content && attachments.length === 0) return
+    addTask(content, attachments)
     setInput('')
-    setImage(null)
+    setAttachments([])
     inputRef.current?.focus()
   }
 
@@ -78,39 +78,43 @@ export default function MainView() {
         input={input}
         setInput={setInput}
         inputRef={inputRef}
-        image={image}
-        setImage={setImage}
+        attachments={attachments}
+        setAttachments={setAttachments}
       />
 
       {/* Task list */}
       <div className="w-full max-w-lg flex flex-col gap-3 pb-24">
         <AnimatePresence mode="popLayout">
-          {activeAndCompletedTasks.map((task, index) => {
-            const category = getTaskDateCategory(task.id)
-            const prevCategory = index > 0 ? getTaskDateCategory(activeAndCompletedTasks[index - 1].id) : null
-            const isDifferentCategory = category !== prevCategory
-
-            return (
-              <motion.div 
-                key={task.id} 
-                layout 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
-                exit={{ opacity: 0 }}
-                className="w-full flex flex-col gap-3"
-              >
-                {isDifferentCategory && (
-                  <div className="flex items-center gap-3 pt-3 pb-1 w-full mx-auto max-w-[95%] opacity-70">
+          {(() => {
+            const nodes = []
+            activeAndCompletedTasks.forEach((task, index) => {
+              const category = getTaskDateCategory(task.id)
+              const prevCategory = index > 0 ? getTaskDateCategory(activeAndCompletedTasks[index - 1].id) : null
+              
+              if (category !== prevCategory) {
+                nodes.push(
+                  <motion.div 
+                    key={`sep-${category}`} 
+                    layout 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-3 pt-3 pb-1 w-full mx-auto max-w-[95%] opacity-70"
+                  >
                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
                       {TaskDateCategoryLabels[category]}
                     </span>
                     <div className="flex-1 h-px bg-border/80" />
-                  </div>
-                )}
-                <TaskCard task={task} onSoftDelete={softDeleteTask} onToggleComplete={toggleCompleteTask} />
-              </motion.div>
-            )
-          })}
+                  </motion.div>
+                )
+              }
+              
+              nodes.push(
+                <TaskCard key={task.id} task={task} onSoftDelete={softDeleteTask} onToggleComplete={toggleCompleteTask} />
+              )
+            })
+            return nodes
+          })()}
         </AnimatePresence>
       </div>
 

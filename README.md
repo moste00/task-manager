@@ -1,16 +1,66 @@
-# React + Vite
+# Task Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A beautifully designed, deeply robust, and completely offline-first personal task manager built with **React**, **Vite**, and **Framer Motion**.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Rich Timeline Organization**: Automatically organizes tasks into precise chronological buckets (e.g., *Today*, *Yesterday*, *Earlier This Week*, *A Long Time Ago*) with clean visual separators.
+- **Deep Media Integration**:
+  - Attach images, videos, spreadsheets, and PDFs infinitely.
+  - Automatically generates intelligent visual layouts, like a 2x2 collage grid for images.
+  - Natively extracts visual thumbnail previews out of raw `.mp4` and video files. 
+- **True Offline Safety**:
+  - Leverages efficient, passive `localStorage` binding hooked into background browser tabs to perfectly sequence and preserve text data safely without unnecessary write operations.
+  - Media payloads are safely bypassed into **IndexedDB** securely to handle extreme file sizes without exploding local quotas, loading asynchronously on demand.
+- **Exporting Options (2x2 Matrix)**: Export any view (Recycle Bin OR Active) as cleanly parsed Markdown (`.md`) or Spreadsheet (`.csv`), with the dynamic option to download all embedded media perfectly natively.
+- **Fluid UI**: Completely architected to take advantage of `framer-motion` for spring-loaded "card-throw" mechanics when sending tasks to the trash, layout sorting arrays, and cleanly fading component lifecycles.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Task Array Lifecycle & Architecture
 
-## Expanding the ESLint configuration
+The application acts as a linear append-only timeline representing your history, tracking the exact lifecycle of individual entities:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```mermaid
+graph TD
+    subgraph "Task Array (Chronologically Sorted)"
+        T1["Task [Newest]"] --> T2["Task [Recent]"]
+        T2 --> T3["Task [Older]"]
+        T3 --> TN["Task [Oldest]"]
+        
+        T2 -. "Inspect State" .-> TL
+    end
+
+    subgraph "Single Task Lifecycle"
+        TL((Task Payload)) --> |"Created"| A[Active]
+        
+        A -- ".toggleCompleteTask()" <--> C[Completed]
+        
+        A -- ".softDeleteTask()" --> SD[Soft Deleted<br/>(Moved to Recycle Bin)]
+        C -- ".softDeleteTask()" --> SD
+        
+        SD -- ".restoreSoftDeletedTask()" --> A
+        
+        SD -- ".hardDeleteTask() / .wipeBin()" --> HD[Destroyed <br/><br/> *Blob Media Garbage<br/> Collected from IndexedDB*]
+    end
+```
+
+---
+
+## Quick Start
+To run this repository locally:
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+
+3. **Build for production**:
+   ```bash
+   npm run build
+   ```
